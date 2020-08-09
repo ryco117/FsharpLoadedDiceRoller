@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="README.md" />
     <Content Include="COPYING" />
     <Compile Include="FsharpLoadedDiceRoller.fs" />
     <Compile Include="Program.fs" />

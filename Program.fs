@@ -21,6 +21,18 @@ open Argu
 
 open FsharpLoadedDiceRoller
 
+let defaultRollCount = 100_000
+let defaultDistribution = [|0; 1; 2; 3; 4|]
+
+let arrayToString (arr: 'T[]) =
+    let sb = new Text.StringBuilder ()
+    if arr.Length > 0 then
+        sb.Append (arr.[0]) |> ignore
+        for i = 1 to arr.Length - 1 do
+            sb.Append ' ' |> ignore
+            sb.Append (arr.[i]) |> ignore
+    sb.ToString ()
+
 type Arguments =
     | Rolls of rolls:uint32
     | Verbose
@@ -31,10 +43,10 @@ type Arguments =
     interface IArgParserTemplate with
         member s.Usage =
             match s with
-            | Rolls _ -> "specify number of rolls to calculate."
+            | Rolls _ -> sprintf "specify number of rolls to calculate (default: %i)." defaultRollCount
             | Verbose -> "specify to print result of roll."
             | Histogram _ -> "specify whether to print end histogram (default: true)."
-            | Distribution _ -> "specify the loaded distribution to use."
+            | Distribution _ -> sprintf "specify the weighted distribution to use (default: %s)." (arrayToString defaultDistribution)
             | License -> "display license information about FsharpLoadedDiceRoller."
             | _ -> raise (new Exception "incomplete interface!!")
 
@@ -53,13 +65,13 @@ let main argv =
         if args.Contains Distribution then
             Array.ofList (args.GetResult Distribution)
         else
-            [|1; 3; 1; 10|]
+            defaultDistribution
     let hist = Array.zeroCreate (dist.Length)
     let N =
         if args.Contains Rolls then
             int (args.GetResult Rolls)
         else
-            100_000
+            defaultRollCount
     let verbose = args.Contains Verbose
     let printHist = not (args.Contains Histogram) || args.GetResult Histogram
 
@@ -73,5 +85,5 @@ let main argv =
     // Print histogram
     if printHist then
         printfn "Histogram results:"
-        printfn "%s" (Array.fold (fun acc e -> acc + (e.ToString ()) + "\t\t") "" hist)
+        printfn "%s" (arrayToString hist)
     0

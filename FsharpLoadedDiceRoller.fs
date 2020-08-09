@@ -1,4 +1,6 @@
 ﻿(*
+Copyright (C) 2020  Ryan Andersen
+
 This file is part of FsharpLoadedDiceRoller
 
 FsharpLoadedDiceRoller is free software: you can redistribute it and/or modify
