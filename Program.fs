@@ -23,6 +23,7 @@ open FsharpLoadedDiceRoller
 
 let defaultRollCount = 100_000
 let defaultDistribution = [|0; 1; 2; 3; 4|]
+let defaultPrintHist = true
 
 let arrayToString (arr: 'T[]) =
     let sb = new Text.StringBuilder ()
@@ -43,10 +44,10 @@ type Arguments =
     interface IArgParserTemplate with
         member s.Usage =
             match s with
-            | Rolls _ -> sprintf "specify number of rolls to calculate (default: %i)." defaultRollCount
+            | Rolls _ -> $"specify number of rolls to calculate (default: %i{defaultRollCount})."
             | Verbose -> "specify to print result of roll."
-            | Histogram _ -> "specify whether to print end histogram (default: true)."
-            | Distribution _ -> sprintf "specify the weighted distribution to use (default: %s)." (arrayToString defaultDistribution)
+            | Histogram _ -> $"specify whether to print end histogram (default: %b{defaultPrintHist})."
+            | Distribution _ -> $"specify the weighted distribution to use (default: %s{arrayToString defaultDistribution})."
             | License -> "display license information about FsharpLoadedDiceRoller."
             | _ -> raise (new Exception "incomplete interface!!")
 
@@ -62,18 +63,19 @@ let main argv =
     if args.IsUsageRequested then printfn "%s" (parser.PrintUsage(programName = "FsharpLoadedDiceRoller")); exit 0
     if args.Contains License then printfn "%s" license; exit 0
     let dist =
-        if args.Contains Distribution then
-            Array.ofList (args.GetResult Distribution)
-        else
-            defaultDistribution
+        match args.TryGetResult Distribution with
+        | Some d -> Array.ofList d
+        | None -> defaultDistribution
     let hist = Array.zeroCreate (dist.Length)
     let N =
-        if args.Contains Rolls then
-            int (args.GetResult Rolls)
-        else
-            defaultRollCount
+        match args.TryGetResult Rolls with
+        | Some rolls -> int rolls
+        | None -> defaultRollCount
     let verbose = args.Contains Verbose
-    let printHist = not (args.Contains Histogram) || args.GetResult Histogram
+    let printHist = 
+        match args.TryGetResult Histogram with
+        | Some h -> h
+        | None -> defaultPrintHist
 
     // Let 'er Roll!
     let roller = new FLDRoller (flipper, dist)
